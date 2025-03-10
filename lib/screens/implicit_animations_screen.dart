@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 class ImplicitAnimationsScreen extends StatefulWidget {
@@ -9,56 +11,57 @@ class ImplicitAnimationsScreen extends StatefulWidget {
 }
 
 class _ImplicitAnimationsScreenState extends State<ImplicitAnimationsScreen> {
-  bool _visible = true;
+  bool _toRight = true;
+  Timer? _timer;
 
-  // void _trigger() {
-  //   setState(() {
-  //     _visible = !_visible;
-  //   });
-  // }
+  @override
+  void initState() {
+    super.initState();
+    _startTimer();
+  }
 
-  void _trigger() {
-    setState(() {
-      _visible = !_visible;
-    });
+  void _startTimer() {
+    _timer = Timer.periodic(
+      Duration(seconds: 1),
+      (timer) => setState(() {
+        _toRight = !_toRight;
+      }),
+    );
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
     return Scaffold(
-      backgroundColor: _visible ? Colors.white : Colors.black,
+      backgroundColor: _toRight ? Colors.white : Colors.black,
       appBar: AppBar(title: const Text('Implict Animations')),
       body: Center(
         child: Stack(
           children: [
-            // Container(
-            //   height: 400,
-            //   width: 400,
-            //   decoration: BoxDecoration(
-            //     color: _visible ? Colors.black : Colors.white,
-            //     border: Border.all(color: Colors.black, width: 1),
-            //   ),
-            // ),
             Container(
               height: 240,
               width: 240,
               decoration: BoxDecoration(
                 color: Colors.red,
-                shape: _visible ? BoxShape.circle : BoxShape.rectangle,
+                shape: _toRight ? BoxShape.circle : BoxShape.rectangle,
               ),
               child: AnimatedAlign(
-                alignment: _visible ? Alignment.topLeft : Alignment.topRight,
+                alignment: _toRight ? Alignment.topLeft : Alignment.topRight,
                 duration: Duration(seconds: 1),
-                child: AnimatedContainer(
+                child: Container(
                   height: 240,
-                  width: 10,
-                  duration: Duration(seconds: 1),
-                  decoration: BoxDecoration(color: Colors.white),
+                  width: 15,
+                  decoration: BoxDecoration(
+                    color: _toRight ? Colors.black : Colors.white,
+                  ),
                 ),
               ),
             ),
-            ElevatedButton(onPressed: _trigger, child: const Text('Go!')),
           ],
         ),
       ),
