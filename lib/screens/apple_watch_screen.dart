@@ -83,7 +83,7 @@ class AppleWatchPainter extends CustomPainter {
     // draw red
     final redCirclePaint =
         Paint()
-          ..color = Colors.red.shade400.withOpacity(0.3)
+          ..color = Colors.red.shade400.withValues(alpha: 0.3)
           ..style = PaintingStyle.stroke
           ..strokeWidth = 25;
 
@@ -96,14 +96,14 @@ class AppleWatchPainter extends CustomPainter {
 
     final greenCircle =
         Paint()
-          ..color = Colors.green.shade400.withOpacity(0.3)
+          ..color = Colors.green.shade400.withValues(alpha: 0.3)
           ..style = PaintingStyle.stroke
           ..strokeWidth = 25;
     canvas.drawCircle(center, greenCircleRadius, greenCircle);
     // draw blue
     final blueCircle =
         Paint()
-          ..color = Colors.cyan.shade400.withOpacity(0.3)
+          ..color = Colors.cyan.shade400.withValues(alpha: 0.3)
           ..style = PaintingStyle.stroke
           ..strokeWidth = 25;
 

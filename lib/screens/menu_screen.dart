@@ -1,5 +1,6 @@
 import 'package:animation/screens/apple_watch_screen.dart';
 import 'package:animation/screens/assignment29.dart';
+import 'package:animation/screens/assignment30.dart';
 import 'package:animation/screens/explicit_animations_screen.dart';
 import 'package:animation/screens/implicit_animations_screen.dart';
 import 'package:flutter/material.dart';
@@ -48,6 +49,12 @@ class MenuScreen extends StatelessWidget {
                 _goToPage(context, const AppleWatchScreen());
               },
               child: const Text('Apple Watch'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                _goToPage(context, Assignment30());
+              },
+              child: const Text('Assignment 30'),
             ),
           ],
         ),
