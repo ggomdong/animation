@@ -23,7 +23,7 @@ class Assignment31 extends StatefulWidget {
 }
 
 class _Assignment31State extends State<Assignment31>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   late final size = MediaQuery.of(context).size;
   late final dropZone = size.width + 100;
   late final AnimationController _position = AnimationController(
@@ -34,11 +34,29 @@ class _Assignment31State extends State<Assignment31>
     value: 0.0,
   );
 
-  final baseColor = Colors.lightBlue.shade200;
-  final reviewColor = Colors.orange.shade500;
-  final memorizeColor = Colors.lightGreen.shade200;
+  late final AnimationController _progressController = AnimationController(
+    vsync: this,
+    duration: Duration(milliseconds: 300),
+  );
 
-  late Color currentColor;
+  late Animation<double> _progressAnimation = Tween<double>(
+    begin: 0.0,
+    end: 1.0,
+  ).animate(_curve);
+
+  late final CurvedAnimation _curve = CurvedAnimation(
+    parent: _progressController,
+    curve: Curves.easeInOut,
+  );
+
+  void _animateProgress() {
+    final newBegin = _progressAnimation.value;
+    final newEnd = _index / (wordBook.length - 1);
+    setState(() {
+      _progressAnimation = Tween(begin: newBegin, end: newEnd).animate(_curve);
+    });
+    _progressController.forward(from: 0);
+  }
 
   late final Tween<double> _rotation = Tween(begin: -15, end: 15);
 
@@ -46,14 +64,15 @@ class _Assignment31State extends State<Assignment31>
 
   void _onHorizontalDragUpdate(DragUpdateDetails details) {
     _position.value += details.delta.dx;
-    print(_position.value);
     if (_position.value < 0) {
       setState(() {
         currentColor = reviewColor;
+        message = "Need to review";
       });
-    } else if (_position.value == 0) {
+    } else {
       setState(() {
-        currentColor = baseColor;
+        currentColor = memorizeColor;
+        message = "I got it right";
       });
     }
   }
@@ -61,7 +80,8 @@ class _Assignment31State extends State<Assignment31>
   void _whenComplete() {
     _position.value = 0;
     setState(() {
-      _index = _index == wordBook.length - 1 ? 1 : _index + 1;
+      _index = _index == wordBook.length - 1 ? 0 : _index + 1;
+      _animateProgress();
     });
   }
 
@@ -75,6 +95,12 @@ class _Assignment31State extends State<Assignment31>
     } else {
       _position.animateTo(0, curve: Curves.easeOut);
     }
+    setState(() {
+      currentColor = baseColor;
+      setState(() {
+        message = "";
+      });
+    });
   }
 
   @override
@@ -86,10 +112,18 @@ class _Assignment31State extends State<Assignment31>
   @override
   void dispose() {
     _position.dispose();
+    _progressController.dispose();
     super.dispose();
   }
 
   int _index = 0;
+  String message = "";
+
+  final baseColor = Colors.lightBlue.shade200;
+  final reviewColor = Colors.orange.shade500;
+  final memorizeColor = Colors.lightGreen.shade200;
+
+  late Color currentColor;
 
   @override
   Widget build(BuildContext context) {
@@ -115,12 +149,21 @@ class _Assignment31State extends State<Assignment31>
             alignment: Alignment.topCenter,
             children: [
               Positioned(
+                top: 50,
+                child: Text(
+                  message,
+                  style: TextStyle(
+                    fontSize: 20,
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              Positioned(
                 top: 100,
                 child: Transform.scale(
                   scale: min(scale, 1.0),
-                  child: Card(
-                    index: _index == wordBook.length - 1 ? 1 : _index + 1,
-                  ),
+                  child: Card(text: ""),
                 ),
               ),
               Positioned(
@@ -132,7 +175,7 @@ class _Assignment31State extends State<Assignment31>
                     offset: Offset(_position.value, 0),
                     child: Transform.rotate(
                       angle: angle,
-                      child: Card(index: _index),
+                      child: FlipCard(index: _index),
                     ),
                   ),
                 ),
@@ -145,9 +188,13 @@ class _Assignment31State extends State<Assignment31>
         color: currentColor,
         child: Padding(
           padding: const EdgeInsets.only(bottom: 100),
-          child: CustomPaint(
-            size: Size(size.width - 80, 20),
-            painter: ProgressBar(progressValue: _index.toDouble()),
+          child: AnimatedBuilder(
+            animation: _progressAnimation,
+            builder:
+                (context, child) => CustomPaint(
+                  size: Size(size.width - 80, 20),
+                  painter: ProgressBar(progressValue: _progressAnimation.value),
+                ),
           ),
         ),
       ),
@@ -155,25 +202,101 @@ class _Assignment31State extends State<Assignment31>
   }
 }
 
-class Card extends StatelessWidget {
+class FlipCard extends StatefulWidget {
   final int index;
 
-  const Card({super.key, required this.index});
+  const FlipCard({super.key, required this.index});
+
+  @override
+  State<FlipCard> createState() => _FlipCardState();
+}
+
+class _FlipCardState extends State<FlipCard>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: Duration(milliseconds: 300),
+  );
+  late Animation<double> _animation =
+      _animation = Tween<double>(begin: 0, end: pi).animate(_controller);
+
+  bool _isFront = true;
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _flipCard() {
+    if (_isFront) {
+      _controller.forward();
+    } else {
+      _controller.reverse();
+    }
+    setState(() {
+      _isFront = !_isFront;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final entry = wordBook.entries.elementAt(widget.index);
+
+    return GestureDetector(
+      onTap: _flipCard,
+      child: AnimatedBuilder(
+        animation: _animation,
+        builder: (context, child) {
+          double angle = _animation.value;
+          bool isFrontVisible = angle < pi / 2;
+
+          return Transform(
+            alignment: Alignment.center,
+            transform:
+                Matrix4.identity()
+                  ..setEntry(3, 2, 0.002) // 3D 효과 추가
+                  ..rotateY(angle),
+            child:
+                isFrontVisible
+                    ? Card(text: entry.key) // 앞면
+                    : Card(text: entry.value, isFlipped: true), // 뒷면
+          );
+        },
+      ),
+    );
+  }
+}
+
+class Card extends StatelessWidget {
+  final String text;
+  final bool isFlipped;
+
+  const Card({super.key, required this.text, this.isFlipped = false});
 
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    return Material(
-      elevation: 10,
-      borderRadius: BorderRadius.circular(20),
-      clipBehavior: Clip.hardEdge,
-      child: SizedBox(
-        width: size.width * 0.8,
-        height: size.height * 0.5,
-        child: Center(
-          child: Text(
-            wordBook.entries.elementAt(index).key,
-            style: TextStyle(fontSize: 32),
+    return Transform(
+      alignment: Alignment.center,
+      transform: isFlipped ? Matrix4.rotationY(pi) : Matrix4.identity(),
+      child: Material(
+        elevation: 10,
+        borderRadius: BorderRadius.circular(20),
+        clipBehavior: Clip.hardEdge,
+        child: SizedBox(
+          width: size.width * 0.8,
+          height: size.height * 0.5,
+          child: Center(
+            child: Text(
+              text,
+              style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+            ),
           ),
         ),
       ),
@@ -188,11 +311,11 @@ class ProgressBar extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    // track
+    final progress = size.width * progressValue;
 
     final trackPaint =
         Paint()
-          ..color = Colors.grey.shade300
+          ..color = Colors.black12
           ..style = PaintingStyle.fill;
 
     final trackRRect = RRect.fromLTRBR(
@@ -208,30 +331,22 @@ class ProgressBar extends CustomPainter {
     // progress
     final progressPaint =
         Paint()
-          ..color = Colors.grey.shade500
+          ..color = Colors.white
           ..style = PaintingStyle.fill;
 
     final progressRRect = RRect.fromLTRBR(
       0,
       0,
-      progressValue,
+      progress,
       size.height,
       const Radius.circular(10),
     );
 
     canvas.drawRRect(progressRRect, progressPaint);
-
-    // thumb
-
-    canvas.drawCircle(
-      Offset(progressValue, size.height / 2),
-      10,
-      progressPaint,
-    );
   }
 
   @override
   bool shouldRepaint(covariant ProgressBar oldDelegate) {
-    return false;
+    return oldDelegate.progressValue != progressValue;
   }
 }
