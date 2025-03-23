@@ -1,10 +1,13 @@
+import 'package:animation/screens/album/album_screen.dart';
 import 'package:animation/screens/apple_watch_screen.dart';
 import 'package:animation/screens/assignment29.dart';
 import 'package:animation/screens/assignment30.dart';
 import 'package:animation/screens/assignment31.dart';
 import 'package:animation/screens/explicit_animations_screen.dart';
 import 'package:animation/screens/implicit_animations_screen.dart';
+import 'package:animation/screens/music_player_screen.dart';
 import 'package:animation/screens/swiping_cards_screen.dart';
+import 'package:animation/screens/wallet_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:animation/screens/assignment28.dart';
 
@@ -69,6 +72,24 @@ class MenuScreen extends StatelessWidget {
                 _goToPage(context, Assignment31());
               },
               child: const Text('Assignment 31'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                _goToPage(context, MusicPlayerScreen());
+              },
+              child: const Text('Music Player'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                _goToPage(context, WalletScreen());
+              },
+              child: const Text('Wallet'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                _goToPage(context, AlbumScreen());
+              },
+              child: const Text('Album App'),
             ),
           ],
         ),
